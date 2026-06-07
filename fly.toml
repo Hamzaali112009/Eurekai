@@ -1,0 +1,29 @@
+# EUREKAI v5.1 — Fly.io Deployment
+# Install flyctl: https://fly.io/docs/hands-on/install-flyctl/
+# Deploy: fly launch (uses this file) or fly deploy
+
+app = "eurekai"
+primary_region = "iad"  # Washington DC — change to your nearest: lhr, fra, sin, nrt
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  STORAGE_TYPE = "local"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false  # Keep running for video processing
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[vm]]
+  size = "shared-cpu-4x"  # 1GB RAM — upgrade to "performance-2x" for heavy videos
+  memory = "2gb"
+
+[mounts]
+  source = "eurekai_data"
+  destination = "/app/data"

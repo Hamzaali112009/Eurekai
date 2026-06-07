@@ -1,0 +1,11 @@
+flask>=2.0
+mediapipe>=0.10.0
+opencv-python>=4.8.0
+numpy>=1.24.0
+ultralytics>=8.0.0
+
+# Cloud deployment (install as needed)
+gunicorn>=21.0
+psycopg2-binary>=2.9
+redis>=5.0
+boto3>=1.28

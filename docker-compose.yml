@@ -1,0 +1,70 @@
+# EUREKAI v5.1 — Local Docker Compose (also works for cloud VPS)
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://eurekai:eurekai@db:5432/eurekai
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-eurekai-dev-key-change-in-production}
+      - STORAGE_TYPE=local
+      - FLASK_ENV=production
+    volumes:
+      - uploads:/app/uploads
+      - outputs:/app/outputs
+      - evidence:/app/evidence
+      - models:/app/models
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=eurekai
+      - POSTGRES_PASSWORD=eurekai
+      - POSTGRES_DB=eurekai
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # Background worker for video processing
+  worker:
+    build: .
+    command: python -c "from workers import start_workers; start_workers()"
+    environment:
+      - DATABASE_URL=postgresql://eurekai:eurekai@db:5432/eurekai
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-eurekai-dev-key-change-in-production}
+      - STORAGE_TYPE=local
+    volumes:
+      - uploads:/app/uploads
+      - outputs:/app/outputs
+      - evidence:/app/evidence
+      - models:/app/models
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads:
+  outputs:
+  evidence:
+  models:
